@@ -10,8 +10,8 @@ To use the script, run the following command:
 
 ```bash
 bash Database-Backup.sh
-bash Database-Backup.sh -t|-test # Dry-run
-bash Database-Backup.sh -h|-help # Displays usage information
+bash Database-Backup.sh -t # Or -test dry-run
+bash Database-Backup.sh -h # Or -help displays usage information
 ```
 
 ## Configuration
