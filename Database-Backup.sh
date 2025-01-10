@@ -12,20 +12,7 @@
 # Date 10/01/2025
 # Version 1.1
 
-#~~~~~~~~Connection Settings~~~~~~~~#
-
-MYSQL_USERNAME=""                # MySQL username
-MYSQL_PASSWORD=""                # MySQL password
-MYSQL_DATABASE=""                # MySQL database name
-MYSQL_HOST="localhost"           # MySQL hostname
-REMOTE_USER=""                   # Remote username
-REMOTE_HOST=""                   # Remote hostname
-REMOTE_PATH=""                   # Remote backup path
-BACKUP_PATH="./"                 # Directory where local backups should be made
-BACKUP_EXPIRES=-1                # Number of days after which local backups should be deleted, -1 for never
-DISABLE_LOCAL_BACKUPS=true       # Enable or disable storage and deletion of local backups, a temporary file will still be made
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+config_file="./config.ini"
 
 dry_run() {
     echo "Dry-run, not backing up."
@@ -222,19 +209,43 @@ print_help() {
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-    -t | -test)
-        dry_run
-        shift
-        ;;
-    -h | -help)
-        print_help
-        exit 0
-        ;;
-    *)
-        echo "Unknown option: $1"
-        print_help
-        exit 1
-        ;;
+        -c | -config)
+            config_file="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+set -- "${@:1}"
+
+if [ -f "$config_file" ]; then
+    source "$config_file"
+else
+    echo "Config file $config_file missing, exiting."
+    exit 1
+fi
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -t | -test)
+            dry_run
+            shift
+            ;;
+        -h | -help)
+            print_help
+            exit 0
+            ;;
+        -c | -config)
+            shift 2
+            ;;
+        *)
+            echo "Unknown option: $1"
+            print_help
+            exit 1
+            ;;
     esac
     shift
 done

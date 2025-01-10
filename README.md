@@ -12,6 +12,7 @@ To use the script, use the following commands:
 bash Database-Backup.sh
 bash Database-Backup.sh -t # Or -test dry-run
 bash Database-Backup.sh -h # Or -help displays usage information
+bash Database-Backup.sh -c config.ini # Or -config use a specific config file, default is ./config.ini
 ```
 
 ## Configuration
@@ -25,7 +26,7 @@ ssh user@remote-host
 Configure settings
 
 ```bash
-nano Database-Backup.sh
+nano config.ini
 ```
 
 ```bash
