@@ -232,7 +232,6 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         -t | -test)
             dry_run
-            shift
             ;;
         -h | -help)
             print_help
