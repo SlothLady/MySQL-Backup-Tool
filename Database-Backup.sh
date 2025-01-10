@@ -12,7 +12,7 @@
 # Date 10/01/2025
 # Version 1.1
 
-config_file="./config.ini"
+config_file="config.ini"
 
 dry_run() {
     echo "Dry-run, not backing up."
