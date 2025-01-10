@@ -214,14 +214,21 @@ while [[ "$#" -gt 0 ]]; do
             config_file="$2"
             shift 2
             ;;
+        -t | -test)
+            dry_run=true
+            shift
+            ;;
+        -h | -help)
+            print_help
+            exit 0
+            ;;
         *)
-            break
+            echo "Unknown option: $1"
+            print_help
+            exit 1
             ;;
     esac
 done
-
-
-set -- "${@:1}"
 
 if [ -f "$config_file" ]; then
     source "$config_file"
@@ -230,29 +237,9 @@ else
     exit 1
 fi
 
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        -t | -test)
-            dry_run
-            shift
-            ;;
-        -h | -help)
-            print_help
-            exit 0
-            ;;
-        -c | -config)
-            shift 2
-            ;;
-        *)
-            echo "Unknown option: $1"
-            print_help
-            exit 1
-            ;;
-    esac
-    shift
-done
-
-if [ "$#" -eq 0 ]; then
+if [ "$dry_run" = true ]; then
+    dry_run
+else
     if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$DISABLE_LOCAL_BACKUPS" != "true" ]; then
         delete_backups
     fi
