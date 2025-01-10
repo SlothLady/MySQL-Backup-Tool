@@ -215,10 +215,11 @@ while [[ "$#" -gt 0 ]]; do
             shift 2
             ;;
         *)
-            shift
+            break
             ;;
     esac
 done
+
 
 set -- "${@:1}"
 
