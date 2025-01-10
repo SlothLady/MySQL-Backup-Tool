@@ -12,7 +12,7 @@
 # Date 10/01/2025
 # Version 1.1
 
-config_file="config.ini"
+config_file="config.conf"
 
 dry_run() {
     echo "Dry-run, not backing up."
@@ -202,9 +202,10 @@ delete_backups() {
 }
 
 print_help() {
-    echo "Usage: $0 [-t | -test] [-h | -help]"
+    echo "Usage: $0 [-t | -test] [-h | -help] [-c config.conf | -config config.conf]"
     echo " -t, -test Perform a dry run without backing up."
     echo " -h, -help Display this help message."
+    echo " -c, -config Use specified config file"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -232,6 +233,7 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
         -t | -test)
             dry_run
+            shift
             ;;
         -h | -help)
             print_help
