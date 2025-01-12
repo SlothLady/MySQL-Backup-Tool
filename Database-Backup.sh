@@ -5,8 +5,9 @@
 # Set connection settings below
 #
 # Options:
-#   -h -help      Display this message.
+#   -c -config    Use specified config file.
 #   -t -test      Dry-run; test connection settings and priveleges without backing up.
+#   -h -help      Display this message.
 #
 # Author: Kate Davidson - katedavidson.dev
 # Date 10/01/2025
@@ -203,9 +204,9 @@ delete_backups() {
 
 print_help() {
     echo "Usage: $0 [-t | -test] [-h | -help] [-c config.conf | -config config.conf]"
+    echo " -c, -config Use specified config file."
     echo " -t, -test Perform a dry run without backing up."
     echo " -h, -help Display this help message."
-    echo " -c, -config Use specified config file"
 }
 
 while [[ "$#" -gt 0 ]]; do

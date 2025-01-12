@@ -2,7 +2,7 @@
 
 This script allows you to backup a MySQL database to, optionally a local folder, and upload the backups to a remote server using SCP. This script also has a dry run option to allow you to just test your connection settings and for neccessary privileges without doing a backup.
 
-Can be automated with a cron job.
+Can be automated with a cron job and different config files can be used for multiple database backups, this allows you to use one script for many deployments and databases.
 
 ## Usage
 
@@ -10,9 +10,9 @@ To use the script, use the following commands:
 
 ```bash
 bash Database-Backup.sh
+bash Database-Backup.sh -c config.conf # Or -config use a specific config file, default is ./config.conf
 bash Database-Backup.sh -t # Or -test dry-run
 bash Database-Backup.sh -h # Or -help displays usage information
-bash Database-Backup.sh -c config.conf # Or -config use a specific config file, default is ./config.conf
 ```
 
 ## Configuration
@@ -55,7 +55,7 @@ bash Database-Backup.sh -t
 ```
 ```
 Dry-run, not backing up.
-Testing connection to remote host novus as user localuser
+Testing connection to remote host remotehost as user localuser
 Checking if remote path /home/remoteuser is writeable.
 Testing connection to MySQL server localhost as mysqluser.
 Checking whether database mysqldb can be used.
