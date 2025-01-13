@@ -206,14 +206,23 @@ date_diff() {
 
 delete_backups() {
     CURRENT_DATE=$(date +"%Y-%m-%d")
-    for FILE in "$BACKUP_PATH"/*.sql.gz; do
-        FILE_DATE=$(basename "$FILE" | cut -d'_' -f1)
-        AGE=$(date_diff "$FILE_DATE" "$CURRENT_DATE")
-        if [ "$AGE" -gt "$BACKUP_EXPIRES" ]; then
-            rm "$FILE"
-            echo "Deleted old backup $FILE."
-        fi
-    done
+    if ls "$BACKUP_PATH"/*.sql.gz 1> /dev/null 2>&1; then
+        for FILE in "$BACKUP_PATH"/*.sql.gz; do
+            FILE_DATE=$(basename "$FILE" | cut -d'_' -f2 | cut -d'.' -f1)
+            if [[ "$FILE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}$ ]]; then
+                FILE_DATE_ONLY=$(echo "$FILE_DATE" | cut -d'_' -f1)
+                AGE=$(date_diff "$FILE_DATE_ONLY" "$CURRENT_DATE")
+                if [ "$AGE" -gt "$BACKUP_EXPIRES" ]; then
+                    rm "$FILE"
+                    echo "Deleted expired backup $FILE."
+                fi
+            else
+                echo "File $FILE does not match the expected date and time format."
+            fi
+        done
+    else
+        echo "No expired backups to delete."
+    fi
 }
 
 print_help() {
