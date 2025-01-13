@@ -11,9 +11,9 @@
 #
 # Author: Kate Davidson - katedavidson.dev
 # Date 10/01/2025
-# Version 1.2
 
-config_file="config.conf"
+config_path="conf.d"
+version=1.3
 
 dry_run() {
     echo "Dry-run, not backing up."
@@ -50,38 +50,39 @@ dry_run() {
                                     fi
                                 fi
                                 echo "Connection test successful, exiting."
-                                exit 0
+                                return 0
                             else
                                 echo "User does NOT have PROCESS privilege, exiting." >&2
-                                exit 1
+                                return 1
                             fi
                         else
                             echo "Database is NOT usable, exiting." >&2
-                            exit 1
+                            return 1
                         fi
                     else
                         echo "Login to MySQL failed, exiting." >&2
-                        exit 1
+                        return 1
                     fi
                 else
                     echo "Writing to remote path failed, exiting." >&2
-                    exit 1
+                    return 1
                 fi
             else
                 echo "Login to remote host failed, exiting." >&2
-                exit 1
+                return 1
             fi
         else
             echo "The database backup directory is not writable, exiting." >&2
-            exit 1
+            return 1
         fi
     else
         echo "The current working directory is not writable, exiting." >&2
-        exit 1
+        return 1
     fi
 }
 
 live_run() {
+    echo "BEGINS $config_file " $(date) >>logs-backup.log
     if [ -w "$(pwd)" ]; then
         if [ -w "$BACKUP_PATH" ]; then
             echo "Testing connection to remote host $REMOTE_HOST as user $REMOTE_USER"
@@ -127,71 +128,71 @@ live_run() {
                                                 echo "Local backup deleted, exiting."
                                                 echo "LOCAL BACKUP DELETED " $(date) >>logs-backup.log
                                                 echo "---------------------------------" >>logs-backup.log
-                                                exit 0
+                                                return 0
                                             else
                                                 echo "Local backup deleting failed, exiting."
                                                 echo "DELETING LOCAL BACKUP FAILED " $(date) >>logs-backup.log
                                                 echo "---------------------------------" >>logs-backup.log
-                                                exit 1
+                                                return 1
                                             fi
                                         else
                                             echo "Backup to remote host successful, exiting."
                                             echo "---------------------------------" >>logs-backup.log
-                                            exit 0
+                                            return 0
                                         fi
                                     else
                                         echo "Backup to remote host failed, exiting." >&2
                                         echo "FILE TRANSFER FAILED " $(date) >>logs-backup.log
                                         echo "---------------------------------" >>logs-backup.log
-                                        exit 1
+                                        return 1
                                     fi
                                 else
                                     echo "Dumping database failed, exiting." >&2
                                     echo "DUMP FAILED " $(date) >>logs-backup.log
                                     echo "---------------------------------" >>logs-backup.log
-                                    exit 1
+                                    return 1
                                 fi
                             else
                                 echo "User does NOT have PROCESS privilege, exiting." >&2
                                 echo "MYSQL USER NO PROCESS PERM " $(date) >>logs-backup.log
                                 echo "---------------------------------" >>logs-backup.log
-                                exit 1
+                                return 1
                             fi
                         else
                             echo "Database is NOT usable, exiting." >&2
                             echo "MYSQL DB NOT USABLE " $(date) >>logs-backup.log
                             echo "---------------------------------" >>logs-backup.log
-                            exit 1
+                            return 1
                         fi
                     else
                         echo "Login to MySQL failed, exiting." >&2
                         echo "MYSQL BAD LOGIN " $(date) >>logs-backup.log
                         echo "---------------------------------" >>logs-backup.log
-                        exit 1
+                        return 1
                     fi
                 else
                     echo "Writing to remote path failed, exiting." >&2
                     echo "REMOTE PATH NO PERMS " $(date) >>logs-backup.log
                     echo "---------------------------------" >>logs-backup.log
-                    exit 1
+                    return 1
                 fi
             else
                 echo "Login to remote host failed, exiting." >&2
                 echo "REMOTE HOST BAD LOGIN " $(date) >>logs-backup.log
                 echo "---------------------------------" >>logs-backup.log
-                exit 1
+                return 1
             fi
         else
             echo "The database backup directory is not writable, exiting." >&2
             echo "LOCAL BACKUP DIR NO PERMS " $(date) >>logs-backup.log
             echo "---------------------------------" >>logs-backup.log
-            exit 1
+            return 1
         fi
     else
         echo "The current working directory is not writable, exiting." >&2
         echo "WORKING DIR NO PERMS " $(date) >>logs-backup.log
         echo "---------------------------------" >>logs-backup.log
-        exit 1
+        return 1
     fi
 }
 
@@ -220,10 +221,24 @@ print_help() {
     echo " -h, -help Display this help message."
 }
 
+unset_variables() {
+    unset MYSQL_BCKTOOL_CFG_VER
+    unset MYSQL_USERNAME
+    unset MYSQL_PASSWORD
+    unset MYSQL_DATABASE
+    unset MYSQL_HOST
+    unset REMOTE_USER
+    unset REMOTE_HOST
+    unset REMOTE_PATH
+    unset LOCAL_BACKUPS
+    unset BACKUP_PATH
+    unset BACKUP_EXPIRES
+}
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -c | -config)
-            config_file="$2"
+            config_path="$2"
             shift 2
             ;;
         -t | -test)
@@ -242,19 +257,55 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-if [ -f "$config_file" ]; then
-    source "$config_file"
-else
-    echo "Config file $config_file missing, exiting."
+if [ -z "$config_path" ]; then
+    echo "Config path or file not specified, exiting."
     exit 1
 fi
 
-if [ "$dry_run" = true ]; then
-    dry_run
+if [ -d "$config_path" ]; then
+    config_files=("$config_path"/*.conf)
 else
-    if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
-        echo "Checking for expired local backups."
-        delete_backups
-    fi
-    live_run
+    config_files=("$config_path")
 fi
+
+if [ ${#config_files[@]} -eq 0 ]; then
+    echo "No config files found, exiting."
+    exit 1
+fi
+
+for config_file in "${config_files[@]}"; do
+    if [ -f "$config_file" ]; then
+        unset_variables
+        source "$config_file"
+        if [ "$MYSQL_BCKTOOL_CFG_VER" -eq $version ]; then
+            if [ "$dry_run" = true ]; then
+                dry_run
+                if [ $? -ne 0 ]; then
+                    ERROR=true
+                fi
+            else
+                if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
+                    echo "Checking for expired local backups."
+                    delete_backups
+                fi
+                live_run
+                if [ $? -ne 0 ]; then
+                    ERROR=true
+                fi
+            fi
+        else
+            echo "Config file $config_file $MYSQL_BCKTOOL_CFG_VER version mismatch, expected $version, skipping."
+            echo "CONFIG FILE $config_file $MYSQL_BCKTOOL_CFG_VER VERSION MISMATCH " $(date) >>logs-backup.log
+            echo "---------------------------------" >>logs-backup.log
+        fi
+    else
+        echo "Config file $config_file missing, skipping."
+        echo "CONFIG FILE $config_file MISSING " $(date) >>logs-backup.log
+        echo "---------------------------------" >>logs-backup.log
+    fi
+    if [ "$ERROR" = true ]; then
+        exit 1
+    else
+        exit 0
+    fi
+done

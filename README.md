@@ -1,8 +1,8 @@
 # MySQL Backup Tool
 
-This script allows you to backup a MySQL database to, optionally a local folder, and upload the backups to a remote server using SCP. This script also has a dry run option to allow you to just test your connection settings and for neccessary privileges without doing a backup.
+This script allows you to backup a MySQL database or multiple MySQL databases to, optionally a local folder, and upload the backups to a remote server using SCP. This script also has a dry run option to allow you to just test your connection settings and for neccessary privileges without doing a backup.
 
-Can be automated with a cron job and different config files can be used for multiple database backups, this allows you to use one script for many deployments and databases.
+Can be automated with a cron job and multiple config files can be stored in a path, you can specify a path with -c or -config, this will make the script recursively use each config file. By default conf.d is used.
 
 ## Usage
 
@@ -10,14 +10,16 @@ To use the script, use the following commands:
 
 ```bash
 bash Database-Backup.sh
-bash Database-Backup.sh -c config.conf # Or -config use a specific config file, default is ./config.conf
+bash Database-Backup.sh -c config.conf # Or -config use a specific config file or config folder, default is ./conf.d
 bash Database-Backup.sh -t # Or -test dry-run
 bash Database-Backup.sh -h # Or -help displays usage information
 ```
 
 ## Configuration
 
-Before your first use, you will need to enter your connection settings for your local MySQL database and the remote host. Additionally this script expects that you have used ssh-keygen to generate ssh keys for the user running the script and synced them with the remote host. You should be able to connect as specified below for this script to not return a remote connection error.
+Before your first use, you will need to enter your connection settings for your local MySQL database and the remote host. Additionally this script expects that you have used ssh-keygen to generate ssh keys for the user running the script and synced them with the remote host. You should be able to connect as specified below for this script to not return a remote connection error. Config files or config file paths can be specified using -c or -config. By default the script will look for config files in the folder conf.d.
+
+The script and config files have a version, when the variables in the script are changed in a way that breaks compatibility, the version number will change and you will need to make alterations to your existing incompatible config files for the script to use them.
 
 ```
 ssh user@remote-host
@@ -26,7 +28,9 @@ ssh user@remote-host
 Configure settings
 
 ```bash
-nano config.conf
+cd conf.d
+cp template database1.conf # It's a good idea to name this file something helpful like the name of your database followed by .conf
+nano database1.conf
 ```
 
 ```bash
