@@ -307,9 +307,10 @@ for config_file in "${config_files[@]}"; do
         echo "CONFIG FILE $config_file MISSING " $(date) >>logs-backup.log
         echo "---------------------------------" >>logs-backup.log
     fi
-    if [ "$ERROR" = true ]; then
-        exit 1
-    else
-        exit 0
-    fi
 done
+
+if [ "$ERROR" = true ]; then
+    exit 1
+else
+    exit 0
+fi
