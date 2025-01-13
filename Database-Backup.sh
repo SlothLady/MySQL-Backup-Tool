@@ -198,22 +198,9 @@ live_run() {
     fi
 }
 
-date_diff() {
-    d1=$(date -d "$1" +%s)
-    d2=$(date -d "$2" +%s)
-    echo $(((d2 - d1) / 86400))
-}
-
 delete_backups() {
-    CURRENT_DATE=$(date +"%Y-%m-%d")
-    for FILE in "$BACKUP_PATH"/*.sql.gz; do
-        FILE_DATE=$(basename "$FILE" | cut -d'_' -f1)
-        AGE=$(date_diff "$FILE_DATE" "$CURRENT_DATE")
-        if [ "$AGE" -gt "$BACKUP_EXPIRES" ]; then
-            rm "$FILE"
-            echo "Deleted old backup $FILE."
-        fi
-    done
+    echo "This feature is currently non-functional"
+    return 1
 }
 
 print_help() {
@@ -290,13 +277,14 @@ for config_file in "${config_files[@]}"; do
                     ERROR=true
                 fi
             else
-                # if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
-                    # echo "Checking for expired local backups."
-                    # delete_backups
-                # fi
                 live_run
                 if [ $? -ne 0 ]; then
                     ERROR=true
+                else
+                    if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
+                        echo "Checking for expired local backups."
+                        delete_backups
+                    fi
                 fi
             fi
         else
