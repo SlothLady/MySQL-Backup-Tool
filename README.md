@@ -59,6 +59,7 @@ bash Database-Backup.sh -t
 ```
 ```
 Dry-run, not backing up.
+Using config file conf.d/database1.conf
 Testing connection to remote host remotehost as user localuser
 Checking if remote path /home/remoteuser is writeable.
 Testing connection to MySQL server localhost as mysqluser.
