@@ -290,10 +290,10 @@ for config_file in "${config_files[@]}"; do
                     ERROR=true
                 fi
             else
-                if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
-                    #echo "Checking for expired local backups."
-                    #delete_backups
-                fi
+                # if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
+                    # echo "Checking for expired local backups."
+                    # delete_backups
+                # fi
                 live_run
                 if [ $? -ne 0 ]; then
                     ERROR=true
