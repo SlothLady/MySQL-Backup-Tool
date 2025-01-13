@@ -264,6 +264,10 @@ fi
 
 if [ -d "$config_path" ]; then
     config_files=("$config_path"/*.conf)
+    if [ -z "$(ls -A "$config_path")" ]; then
+        echo "Config directory is empty, exiting."
+        exit 1
+    fi
 else
     config_files=("$config_path")
 fi
