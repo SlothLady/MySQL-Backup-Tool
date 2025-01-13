@@ -199,28 +199,8 @@ live_run() {
 }
 
 delete_backups() {
-
-    DATE_REGEX='_(\d{4}-\d{2}-\d{2})_(?:\d{2}-\d{2})\.sql\.gz'
-
-    echo "BACKUP EXPIRY CHECK $config_file " $(date) >>logs-backup.log
-    for file in "$BACKUP_PATH"/*.sql.gz; do
-        if [[ $file =~ $DATE_REGEX ]]; then
-            file_date=${BASH_REMATCH[1]}
-            file_date_epoch=$(date -d "$file_date" +%s)
-            current_date_epoch=$(date +%s)
-            diff_days=$(((current_date_epoch - file_date_epoch) / 86400))
-
-            if [[ $diff_days -gt $BACKUP_EXPIRES ]]; then
-                echo "Deleting: $file (Date: $file_date, Older than $BACKUP_EXPIRES days)."
-                echo "DELETING $file " $(date) >>logs-backup.log
-                rm "$file"
-            fi
-        else
-            echo "No valid date found in: $file."
-        fi
-    done
-    echo "---------------------------------" >>logs-backup.log
-    return 0
+    echo "This feature is currently non-functional"
+    return 1
 }
 
 print_help() {
@@ -297,7 +277,6 @@ for config_file in "${config_files[@]}"; do
                     ERROR=true
                 fi
             else
-                delete_backups
                 live_run
                 if [ $? -ne 0 ]; then
                     ERROR=true
