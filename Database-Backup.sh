@@ -5,7 +5,7 @@
 # Set connection settings below
 #
 # Options:
-#   -c -config    Use specified config file.
+#   -c -config    Use specified config file or folder of config files.
 #   -t -test      Dry-run; test connection settings and priveleges without backing up.
 #   -h -help      Display this message.
 #
@@ -218,7 +218,7 @@ delete_backups() {
 
 print_help() {
     echo "Usage: $0 [-t | -test] [-h | -help] [-c config.conf | -config config.conf]"
-    echo " -c, -config Use specified config file."
+    echo " -c, -config Use specified config file or folder of config files."
     echo " -t, -test Perform a dry run without backing up."
     echo " -h, -help Display this help message."
 }
