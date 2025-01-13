@@ -297,6 +297,7 @@ for config_file in "${config_files[@]}"; do
                     ERROR=true
                 fi
             else
+                delete_backups
                 live_run
                 if [ $? -ne 0 ]; then
                     ERROR=true
