@@ -13,7 +13,7 @@
 # Date 10/01/2025
 
 config_path="conf.d"
-version=1.3
+version="1.3"
 
 dry_run() {
     echo "Dry-run, not backing up."
@@ -277,7 +277,7 @@ for config_file in "${config_files[@]}"; do
     if [ -f "$config_file" ]; then
         unset_variables
         source "$config_file"
-        if [ "$MYSQL_BCKTOOL_CFG_VER" -eq $version ]; then
+        if [ "$MYSQL_BCKTOOL_CFG_VER" = $version ]; then
             if [ "$dry_run" = true ]; then
                 dry_run
                 if [ $? -ne 0 ]; then
