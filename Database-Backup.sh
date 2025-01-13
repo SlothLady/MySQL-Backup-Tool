@@ -17,6 +17,7 @@ version="1.3"
 
 dry_run() {
     echo "Dry-run, not backing up."
+    echo "Using config file $config_file"
     if [ -w "$(pwd)" ]; then
         if [ -w "$BACKUP_PATH" ]; then
             echo "Testing connection to remote host $REMOTE_HOST as user $REMOTE_USER"
@@ -83,6 +84,7 @@ dry_run() {
 
 live_run() {
     echo "BEGINS $config_file " $(date) >>logs-backup.log
+    echo "Using config file $config_file"
     if [ -w "$(pwd)" ]; then
         if [ -w "$BACKUP_PATH" ]; then
             echo "Testing connection to remote host $REMOTE_HOST as user $REMOTE_USER"
@@ -298,14 +300,18 @@ for config_file in "${config_files[@]}"; do
                 fi
             fi
         else
-            echo "Config file $config_file $MYSQL_BCKTOOL_CFG_VER version mismatch, expected $version, skipping."
-            echo "CONFIG FILE $config_file $MYSQL_BCKTOOL_CFG_VER VERSION MISMATCH " $(date) >>logs-backup.log
-            echo "---------------------------------" >>logs-backup.log
+            if [ "$dry_run" = false ]; then
+                echo "Config file $config_file $MYSQL_BCKTOOL_CFG_VER version mismatch, expected $version, skipping."
+                echo "CONFIG FILE $config_file $MYSQL_BCKTOOL_CFG_VER VERSION MISMATCH " $(date) >>logs-backup.log
+                echo "---------------------------------" >>logs-backup.log
+            fi
         fi
     else
-        echo "Config file $config_file missing, skipping."
-        echo "CONFIG FILE $config_file MISSING " $(date) >>logs-backup.log
-        echo "---------------------------------" >>logs-backup.log
+        if [ "$dry_run" = false ]; then
+            echo "Config file $config_file missing, skipping."
+            echo "CONFIG FILE $config_file MISSING " $(date) >>logs-backup.log
+            echo "---------------------------------" >>logs-backup.log
+        fi
     fi
 done
 
