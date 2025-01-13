@@ -11,7 +11,7 @@
 #
 # Author: Kate Davidson - katedavidson.dev
 # Date 10/01/2025
-# Version 1.1
+# Version 1.2
 
 config_file="config.conf"
 
@@ -34,20 +34,30 @@ dry_run() {
                         echo "Checking whether database $MYSQL_DATABASE can be used."
                         RESULT=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "USE $MYSQL_DATABASE;" >/dev/null 2>&1)
 
-                        if [[ $RESULT == *"ERROR"* ]]; then
-                            echo "Database is NOT usable, exiting." >&2
-                            exit 1
-                        else
+                        if [[ $RESULT != *"ERROR"* ]]; then
                             echo "Checking if user $MYSQL_USERNAME has PROCESS privileges."
                             PRIVILEGES=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "SHOW GRANTS FOR '$MYSQL_USERNAME'@'$MYSQL_HOST';" 2>/dev/null)
 
                             if [[ $PRIVILEGES == *"PROCESS"* ]]; then
+
+                                if [[ "$LOCAL_BACKUPS" = true ]]; then
+                                    echo "Local backups are enabled."
+
+                                    if [[ "$BACKUP_EXPIRES" -ne -1 ]]; then
+                                        echo "Local backups expire after $BACKUP_EXPIRES days."
+                                    else
+                                        echo "Local backups set to not expire."
+                                    fi
+                                fi
                                 echo "Connection test successful, exiting."
                                 exit 0
                             else
                                 echo "User does NOT have PROCESS privilege, exiting." >&2
                                 exit 1
                             fi
+                        else
+                            echo "Database is NOT usable, exiting." >&2
+                            exit 1
                         fi
                     else
                         echo "Login to MySQL failed, exiting." >&2
@@ -58,7 +68,7 @@ dry_run() {
                     exit 1
                 fi
             else
-                echo "Login to remote host or writing to remote path failed, exiting." >&2
+                echo "Login to remote host failed, exiting." >&2
                 exit 1
             fi
         else
@@ -89,10 +99,7 @@ live_run() {
                         echo "Checking whether database $MYSQL_DATABASE can be used."
                         RESULT=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "USE $MYSQL_DATABASE;" >/dev/null 2>&1)
 
-                        if [[ $RESULT == *"ERROR"* ]]; then
-                            echo "Database is NOT usable, exiting." >&2
-                            exit 1
-                        else
+                        if [[ $RESULT != *"ERROR"* ]]; then
                             echo "Checking if user $MYSQL_USERNAME has PROCESS privileges."
                             PRIVILEGES=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "SHOW GRANTS FOR '$MYSQL_USERNAME'@'$MYSQL_HOST';" 2>/dev/null)
 
@@ -111,7 +118,7 @@ live_run() {
                                     if [ $? -eq 0 ]; then
                                         echo "END FILE TRANSFER " $(date) >>logs-backup.log
 
-                                        if [ "$DISABLE_LOCAL_BACKUP" = true ]; then
+                                        if [ "$LOCAL_BACKUPS" = false ]; then
                                             echo "Backup to remote host successful, deleting temporary file."
                                             echo "DELETING LOCAL BACKUP " $(date) >>logs-backup.log
                                             rm $BACKUP_PATH/$BACKUP_FILENAME
@@ -146,39 +153,43 @@ live_run() {
                                 fi
                             else
                                 echo "User does NOT have PROCESS privilege, exiting." >&2
-                                echo "CONFIG ERROR " $(date) >>logs-backup.log
+                                echo "MYSQL USER NO PROCESS PERM " $(date) >>logs-backup.log
                                 echo "---------------------------------" >>logs-backup.log
                                 exit 1
                             fi
+                        else
+                            echo "Database is NOT usable, exiting." >&2
+                            echo "MYSQL DB NOT USABLE " $(date) >>logs-backup.log
+                            echo "---------------------------------" >>logs-backup.log
+                            exit 1
                         fi
                     else
                         echo "Login to MySQL failed, exiting." >&2
-                        echo "CONFIG ERROR " $(date) >>logs-backup.log
+                        echo "MYSQL BAD LOGIN " $(date) >>logs-backup.log
                         echo "---------------------------------" >>logs-backup.log
                         exit 1
                     fi
                 else
                     echo "Writing to remote path failed, exiting." >&2
-                    echo "CONFIG ERROR " $(date) >>logs-backup.log
+                    echo "REMOTE PATH NO PERMS " $(date) >>logs-backup.log
                     echo "---------------------------------" >>logs-backup.log
                     exit 1
                 fi
-
             else
-                echo "Login to remote host or writing to remote path failed, exiting." >&2
-                echo "CONFIG ERROR " $(date) >>logs-backup.log
+                echo "Login to remote host failed, exiting." >&2
+                echo "REMOTE HOST BAD LOGIN " $(date) >>logs-backup.log
                 echo "---------------------------------" >>logs-backup.log
                 exit 1
             fi
         else
             echo "The database backup directory is not writable, exiting." >&2
-            echo "CONFIG ERROR " $(date) >>logs-backup.log
+            echo "LOCAL BACKUP DIR NO PERMS " $(date) >>logs-backup.log
             echo "---------------------------------" >>logs-backup.log
             exit 1
         fi
     else
         echo "The current working directory is not writable, exiting." >&2
-        echo "CONFIG ERROR " $(date) >>logs-backup.log
+        echo "WORKING DIR NO PERMS " $(date) >>logs-backup.log
         echo "---------------------------------" >>logs-backup.log
         exit 1
     fi
@@ -197,7 +208,7 @@ delete_backups() {
         AGE=$(date_diff "$FILE_DATE" "$CURRENT_DATE")
         if [ "$AGE" -gt "$BACKUP_EXPIRES" ]; then
             rm "$FILE"
-            echo "Deleted old backup $FILE"
+            echo "Deleted old backup $FILE."
         fi
     done
 }
@@ -241,7 +252,8 @@ fi
 if [ "$dry_run" = true ]; then
     dry_run
 else
-    if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$DISABLE_LOCAL_BACKUPS" != "true" ]; then
+    if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
+        echo "Checking for expired local backups."
         delete_backups
     fi
     live_run
