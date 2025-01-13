@@ -198,22 +198,33 @@ live_run() {
     fi
 }
 
-date_diff() {
-    d1=$(date -d "$1" +%s)
-    d2=$(date -d "$2" +%s)
-    echo $(((d2 - d1) / 86400))
-}
-
 delete_backups() {
-    CURRENT_DATE=$(date +"%Y-%m-%d")
-    for FILE in "$BACKUP_PATH"/*.sql.gz; do
-        FILE_DATE=$(basename "$FILE" | cut -d'_' -f1)
-        AGE=$(date_diff "$FILE_DATE" "$CURRENT_DATE")
-        if [ "$AGE" -gt "$BACKUP_EXPIRES" ]; then
-            rm "$FILE"
-            echo "Deleted old backup $FILE."
+
+    DATE_REGEX='_(\d{4}-\d{2}-\d{2})_'
+
+    if [[ ! -d "$BACKUP_PATH" || -z $(ls -A "$BACKUP_PATH"/*.sql.gz 2>/dev/null) ]]; then
+        echo "The folder is either empty or does not exist."
+        return 1
+    fi
+    echo "BACKUP EXPIRY CHECK $config_file " $(date) >>logs-backup.log
+    for file in "$BACKUP_PATH"/*.sql.gz; do
+        if [[ $file =~ $DATE_REGEX ]]; then
+            file_date=${BASH_REMATCH[1]}
+            file_date_epoch=$(date -d "$file_date" +%s)
+            current_date_epoch=$(date +%s)
+            diff_days=$(((current_date_epoch - file_date_epoch) / 86400))
+
+            if [[ $diff_days -gt $BACKUP_EXPIRES ]]; then
+                echo "Deleting: $file (Date: $file_date, Older than $BACKUP_EXPIRES days)."
+                echo "DELETING $file " $(date) >>logs-backup.log
+                rm "$file"
+            fi
+        else
+            echo "No valid date found in: $file."
         fi
     done
+    echo "---------------------------------" >>logs-backup.log
+    return 0
 }
 
 print_help() {
@@ -290,10 +301,10 @@ for config_file in "${config_files[@]}"; do
                     ERROR=true
                 fi
             else
-                # if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
-                    # echo "Checking for expired local backups."
-                    # delete_backups
-                # fi
+                if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
+                    echo "Checking for expired local backups."
+                    delete_backups
+                fi
                 live_run
                 if [ $? -ne 0 ]; then
                     ERROR=true
