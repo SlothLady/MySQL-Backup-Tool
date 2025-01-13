@@ -200,12 +200,8 @@ live_run() {
 
 delete_backups() {
 
-    DATE_REGEX='_(\d{4}-\d{2}-\d{2})_'
+    DATE_REGEX='_(\d{4}-\d{2}-\d{2})_(?:\d{2}-\d{2})\.sql\.gz'
 
-    if [[ ! -d "$BACKUP_PATH" || -z $(ls -A "$BACKUP_PATH"/*.sql.gz 2>/dev/null) ]]; then
-        echo "The folder is either empty or does not exist."
-        return 1
-    fi
     echo "BACKUP EXPIRY CHECK $config_file " $(date) >>logs-backup.log
     for file in "$BACKUP_PATH"/*.sql.gz; do
         if [[ $file =~ $DATE_REGEX ]]; then
@@ -301,13 +297,14 @@ for config_file in "${config_files[@]}"; do
                     ERROR=true
                 fi
             else
-                if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
-                    echo "Checking for expired local backups."
-                    delete_backups
-                fi
                 live_run
                 if [ $? -ne 0 ]; then
                     ERROR=true
+                else
+                    if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
+                        echo "Checking for expired local backups."
+                        delete_backups
+                    fi
                 fi
             fi
         else
