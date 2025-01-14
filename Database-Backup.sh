@@ -199,8 +199,25 @@ live_run() {
 }
 
 delete_backups() {
-    echo "This feature is currently non-functional"
-    return 1
+    CURRENT_DATE=$(date +%s)
+    for file in "$BACKUP_PATH"/*.sql.gz; do
+        if [[ $file =~ _([0-9]{4}-[0-9]{2}-[0-9]{2})_[0-9]{2}-[0-9]{2}\.sql\.gz ]]; then
+            FILE_DATE=${BASH_REMATCH[1]}
+            FILE_DATE_EPOCH=$(date -d "$FILE_DATE" +%s)
+            FILE_AGE=$(( (CURRENT_DATE - FILE_DATE_EPOCH) / (60*60*24) ))
+            if (( FILE_AGE > BACKUP_EXPIRES )); then
+                if [ "$dry_run" = false ]; then
+                    echo "Deleting $file (age: $FILE_AGE days)"
+                    echo "DELETING EXPIRED BACKUP $file " $(date) >>logs-backup.log
+                    echo "---------------------------------" >>logs-backup.log
+                    rm "$file"
+                else
+                    echo "$file (age: $FILE_AGE days) is older than (BACKUP_EXPIRES: $BACKUP_EXPIRES days)"
+                fi
+            fi
+        fi
+    done
+    return 0
 }
 
 print_help() {
@@ -275,6 +292,11 @@ for config_file in "${config_files[@]}"; do
                 dry_run
                 if [ $? -ne 0 ]; then
                     ERROR=true
+                else
+                    if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
+                        echo "Checking for expired local backups."
+                        delete_backups
+                    fi
                 fi
             else
                 live_run
@@ -304,6 +326,7 @@ for config_file in "${config_files[@]}"; do
 done
 
 if [ "$ERROR" = true ]; then
+    echo "Exited with error, not checking for expired backups"
     exit 1
 else
     exit 0
