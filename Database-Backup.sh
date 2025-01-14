@@ -199,8 +199,19 @@ live_run() {
 }
 
 delete_backups() {
-    echo "This feature is currently non-functional"
-    return 1
+    CURRENT_DATE=$(date +%s)
+    for file in "$BACKUP_PATH"/*.sql.gz; do
+        if [[ $file =~ _([0-9]{4}-[0-9]{2}-[0-9]{2})_[0-9]{2}-[0-9]{2}\.sql\.gz ]]; then
+            FILE_DATE=${BASH_REMATCH[1]}
+            FILE_DATE_EPOCH=$(date -d "$FILE_DATE" +%s)
+            FILE_AGE=$(( (CURRENT_DATE - FILE_DATE_EPOCH) / (60*60*24) ))
+            if (( FILE_AGE > BACKUP_EXPIRES )); then
+                echo "Deleting $file (age: $FILE_AGE days)"
+                rm "$file"
+            fi
+        fi
+    done
+    return 0
 }
 
 print_help() {
