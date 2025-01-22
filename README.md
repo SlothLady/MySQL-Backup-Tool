@@ -6,7 +6,7 @@ Can be automated with a cron job and multiple config files can be stored in a pa
 
 ## Usage
 
-To use the script, use the following commands:
+### To use the script, use the following commands:
 
 ```bash
 bash Database-Backup.sh
@@ -25,7 +25,7 @@ The script and config files have a version, when the variables in the script are
 ssh user@remote-host
 ```
 
-Create new mysql user for backup
+### Create new mysql user for backup
 
 ```
 CREATE USER 'backup'@'localhost' IDENTIFIED BY 'password';
@@ -33,13 +33,15 @@ GRANT SELECT, SHOW VIEW, TRIGGER, PROCESS ON *.* TO 'backup'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-Configure settings
+### Configure settings
 
 ```bash
 cd conf.d
 cp template database1.conf # It's a good idea to name this file something helpful like the name of your database followed by .conf
 nano database1.conf
 ```
+
+### If running this script with cron, use explicit paths like /home/ubuntu for the backup path.
 
 ```bash
 #~~~~~~~~Connection Settings~~~~~~~~#
@@ -52,7 +54,7 @@ REMOTE_USER=""                   # Remote username
 REMOTE_HOST=""                   # Remote hostname
 REMOTE_PATH=""                   # Remote backup path
 LOCAL_BACKUPS=false              # Enable or disable storage and deletion of local backups, a temporary file will still be made
-BACKUP_PATH=""                   # Directory where local backups should be made
+BACKUP_PATH="./"                   # Directory where local backups should be made
 BACKUP_EXPIRES=-1                # Number of days after which local backups should be deleted, -1 for never
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -60,7 +62,7 @@ BACKUP_EXPIRES=-1                # Number of days after which local backups shou
 
 ## Testing Configuration
 
-You can test your configuration by using the test argument.
+### You can test your configuration by using the test argument.
 
 ```bash
 bash Database-Backup.sh -t
