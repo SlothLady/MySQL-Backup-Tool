@@ -12,13 +12,14 @@
 # Author: Kate Davidson - katedavidson.dev
 # Date 10/01/2025
 
-config_path="conf.d"
 version="1.3"
+config_path="$(dirname $(realpath $0))/conf.d"
+script_path="$(dirname $(realpath $0))"
 
 dry_run() {
     echo "Dry-run, not backing up."
     echo "Using config file $config_file"
-    if [ -w "$(pwd)" ]; then
+    if [ -w "$script_path" ]; then
         if [ -w "$BACKUP_PATH" ]; then
             echo "Testing connection to remote host $REMOTE_HOST as user $REMOTE_USER"
             ssh -o BatchMode=yes -o ConnectTimeout=5 "${REMOTE_USER}@${REMOTE_HOST}" 'echo "Login successful."' >/dev/null 2>&1
@@ -77,15 +78,15 @@ dry_run() {
             return 1
         fi
     else
-        echo "The current working directory is not writable, exiting." >&2
+        echo "The script directory is not writable, exiting." >&2
         return 1
     fi
 }
 
 live_run() {
-    echo "BEGINS $config_file " $(date) >>logs-backup.log
+    echo "BEGINS $config_file " $(date) >>$script_path/logs-backup.log
     echo "Using config file $config_file"
-    if [ -w "$(pwd)" ]; then
+    if [ -w "$script_path" ]; then
         if [ -w "$BACKUP_PATH" ]; then
             echo "Testing connection to remote host $REMOTE_HOST as user $REMOTE_USER"
             ssh -o BatchMode=yes -o ConnectTimeout=5 "${REMOTE_USER}@${REMOTE_HOST}" 'echo "Login successful."' >/dev/null 2>&1
@@ -109,91 +110,91 @@ live_run() {
                             if [[ $PRIVILEGES == *"PROCESS"* ]]; then
                                 BACKUP_FILENAME="${MYSQL_DATABASE}_$(date +"%Y-%m-%d_%H-%M").sql.gz"
                                 echo "Dumping database $MYSQL_DATABASE to $BACKUP_PATH/$BACKUP_FILENAME."
-                                echo "BEGIN DUMP " $(date) >>logs-backup.log
+                                echo "BEGIN DUMP " $(date) >>$script_path/logs-backup.log
                                 MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump -u "${MYSQL_USERNAME}" -h "${MYSQL_HOST}" --single-transaction --databases "${MYSQL_DATABASE}" 2>/dev/null | gzip -9 >$BACKUP_PATH/$BACKUP_FILENAME
 
                                 if [ $? -eq 0 ]; then
-                                    echo "END DUMP " $(date) >>logs-backup.log
+                                    echo "END DUMP " $(date) >>$script_path/logs-backup.log
                                     echo "Dumping database successful. Backing up to remote host $REMOTE_HOST as user $REMOTE_USER."
-                                    echo "BEGIN FILE TRANSFER " $(date) >>logs-backup.log
+                                    echo "BEGIN FILE TRANSFER " $(date) >>$script_path/logs-backup.log
                                     scp $BACKUP_PATH/$BACKUP_FILENAME $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH
 
                                     if [ $? -eq 0 ]; then
-                                        echo "END FILE TRANSFER " $(date) >>logs-backup.log
+                                        echo "END FILE TRANSFER " $(date) >>$script_path/logs-backup.log
 
                                         if [ "$LOCAL_BACKUPS" = false ]; then
                                             echo "Backup to remote host successful, deleting temporary file."
-                                            echo "DELETING LOCAL BACKUP " $(date) >>logs-backup.log
+                                            echo "DELETING LOCAL BACKUP " $(date) >>$script_path/logs-backup.log
                                             rm $BACKUP_PATH/$BACKUP_FILENAME
 
                                             if [ $? -eq 0 ]; then
                                                 echo "Local backup deleted, exiting."
-                                                echo "LOCAL BACKUP DELETED " $(date) >>logs-backup.log
-                                                echo "---------------------------------" >>logs-backup.log
+                                                echo "LOCAL BACKUP DELETED " $(date) >>$script_path/logs-backup.log
+                                                echo "---------------------------------" >>$script_path/logs-backup.log
                                                 return 0
                                             else
                                                 echo "Local backup deleting failed, exiting."
-                                                echo "DELETING LOCAL BACKUP FAILED " $(date) >>logs-backup.log
-                                                echo "---------------------------------" >>logs-backup.log
+                                                echo "DELETING LOCAL BACKUP FAILED " $(date) >>$script_path/logs-backup.log
+                                                echo "---------------------------------" >>$script_path/logs-backup.log
                                                 return 1
                                             fi
                                         else
                                             echo "Backup to remote host successful, exiting."
-                                            echo "---------------------------------" >>logs-backup.log
+                                            echo "---------------------------------" >>$script_path/logs-backup.log
                                             return 0
                                         fi
                                     else
                                         echo "Backup to remote host failed, exiting." >&2
-                                        echo "FILE TRANSFER FAILED " $(date) >>logs-backup.log
-                                        echo "---------------------------------" >>logs-backup.log
+                                        echo "FILE TRANSFER FAILED " $(date) >>$script_path/logs-backup.log
+                                        echo "---------------------------------" >>$script_path/logs-backup.log
                                         return 1
                                     fi
                                 else
                                     echo "Dumping database failed, exiting." >&2
-                                    echo "DUMP FAILED " $(date) >>logs-backup.log
-                                    echo "---------------------------------" >>logs-backup.log
+                                    echo "DUMP FAILED " $(date) >>$script_path/logs-backup.log
+                                    echo "---------------------------------" >>$script_path/logs-backup.log
                                     return 1
                                 fi
                             else
                                 echo "User does NOT have PROCESS privilege, exiting." >&2
-                                echo "MYSQL USER NO PROCESS PERM " $(date) >>logs-backup.log
-                                echo "---------------------------------" >>logs-backup.log
+                                echo "MYSQL USER NO PROCESS PERM " $(date) >>$script_path/logs-backup.log
+                                echo "---------------------------------" >>$script_path/logs-backup.log
                                 return 1
                             fi
                         else
                             echo "Database is NOT usable, exiting." >&2
-                            echo "MYSQL DB NOT USABLE " $(date) >>logs-backup.log
-                            echo "---------------------------------" >>logs-backup.log
+                            echo "MYSQL DB NOT USABLE " $(date) >>$script_path/logs-backup.log
+                            echo "---------------------------------" >>$script_path/logs-backup.log
                             return 1
                         fi
                     else
                         echo "Login to MySQL failed, exiting." >&2
-                        echo "MYSQL BAD LOGIN " $(date) >>logs-backup.log
-                        echo "---------------------------------" >>logs-backup.log
+                        echo "MYSQL BAD LOGIN " $(date) >>$script_path/logs-backup.log
+                        echo "---------------------------------" >>$script_path/logs-backup.log
                         return 1
                     fi
                 else
                     echo "Writing to remote path failed, exiting." >&2
-                    echo "REMOTE PATH NO PERMS " $(date) >>logs-backup.log
-                    echo "---------------------------------" >>logs-backup.log
+                    echo "REMOTE PATH NO PERMS " $(date) >>$script_path/logs-backup.log
+                    echo "---------------------------------" >>$script_path/logs-backup.log
                     return 1
                 fi
             else
                 echo "Login to remote host failed, exiting." >&2
-                echo "REMOTE HOST BAD LOGIN " $(date) >>logs-backup.log
-                echo "---------------------------------" >>logs-backup.log
+                echo "REMOTE HOST BAD LOGIN " $(date) >>$script_path/logs-backup.log
+                echo "---------------------------------" >>$script_path/logs-backup.log
                 return 1
             fi
         else
             echo "The database backup directory is not writable, exiting." >&2
-            echo "LOCAL BACKUP DIR NO PERMS " $(date) >>logs-backup.log
-            echo "---------------------------------" >>logs-backup.log
+            echo "LOCAL BACKUP DIR NO PERMS " $(date) >>$script_path/logs-backup.log
+            echo "---------------------------------" >>$script_path/logs-backup.log
             return 1
         fi
     else
-        echo "The current working directory is not writable, exiting." >&2
-        echo "WORKING DIR NO PERMS " $(date) >>logs-backup.log
-        echo "---------------------------------" >>logs-backup.log
+        echo "The script directory is not writable, exiting." >&2
+        echo "SCRIPT DIR NO PERMS " $(date) >>$script_path/logs-backup.log
+        echo "---------------------------------" >>$script_path/logs-backup.log
         return 1
     fi
 }
@@ -208,8 +209,8 @@ delete_backups() {
             if (( FILE_AGE > BACKUP_EXPIRES )); then
                 if [ "$dry_run" = false ]; then
                     echo "Deleting $file (age: $FILE_AGE days)"
-                    echo "DELETING EXPIRED BACKUP $file " $(date) >>logs-backup.log
-                    echo "---------------------------------" >>logs-backup.log
+                    echo "DELETING EXPIRED BACKUP $file " $(date) >>$script_path/logs-backup.log
+                    echo "---------------------------------" >>$script_path/logs-backup.log
                     rm "$file"
                 else
                     echo "$file (age: $FILE_AGE days) is older than (BACKUP_EXPIRES: $BACKUP_EXPIRES days)"
@@ -312,15 +313,15 @@ for config_file in "${config_files[@]}"; do
         else
             if [ "$dry_run" = false ]; then
                 echo "Config file $config_file $MYSQL_BCKTOOL_CFG_VER version mismatch, expected $version, skipping."
-                echo "CONFIG FILE $config_file $MYSQL_BCKTOOL_CFG_VER VERSION MISMATCH " $(date) >>logs-backup.log
-                echo "---------------------------------" >>logs-backup.log
+                echo "CONFIG FILE $config_file $MYSQL_BCKTOOL_CFG_VER VERSION MISMATCH " $(date) >>$script_path/logs-backup.log
+                echo "---------------------------------" >>$script_path/logs-backup.log
             fi
         fi
     else
         if [ "$dry_run" = false ]; then
             echo "Config file $config_file missing, skipping."
-            echo "CONFIG FILE $config_file MISSING " $(date) >>logs-backup.log
-            echo "---------------------------------" >>logs-backup.log
+            echo "CONFIG FILE $config_file MISSING " $(date) >>$script_path/logs-backup.log
+            echo "---------------------------------" >>$script_path/logs-backup.log
         fi
     fi
 done
