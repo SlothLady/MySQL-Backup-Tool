@@ -25,6 +25,14 @@ The script and config files have a version, when the variables in the script are
 ssh user@remote-host
 ```
 
+Create new mysql user for backup
+
+```
+CREATE USER 'backup'@'localhost' IDENTIFIED BY 'password';
+GRANT SELECT, SHOW VIEW, TRIGGER, PROCESS ON *.* TO 'backup'@'localhost';
+FLUSH PRIVILEGES;
+```
+
 Configure settings
 
 ```bash
