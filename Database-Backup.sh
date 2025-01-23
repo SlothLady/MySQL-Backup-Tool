@@ -17,18 +17,7 @@ config_path="$(dirname $(realpath $0))/conf.d"
 script_path="$(dirname $(realpath $0))"
 
 slack_message() {
-
-PAYLOAD=$(cat <<EOF
-{
-  "username": "MySQL Backup Tool",
-  "text": "*Log Message:*\n$1\n\n*Config File:*\n$2\n\n*Status:*\n$3"
-  "icon_emoji": ":floppy_disk:"
-}
-EOF
-)
-
-curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d "$PAYLOAD"
-
+    curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' --data '"text": "*Log Message:*\n$1\n\n*Config File:*\n$2\n\n*Status:*\n$3"'
 }
 
 dry_run() {
