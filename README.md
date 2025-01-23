@@ -44,6 +44,9 @@ nano database1.conf
 ### If running this script with cron, use explicit paths like /home/ubuntu for the backup path.
 
 ```bash
+# MySQL Database Backup Tool Config
+MYSQL_BCKTOOL_CFG_VER="1.4"
+
 #~~~~~~~~Connection Settings~~~~~~~~#
 
 MYSQL_USERNAME=""                # MySQL username
@@ -54,8 +57,10 @@ REMOTE_USER=""                   # Remote username
 REMOTE_HOST=""                   # Remote hostname
 REMOTE_PATH=""                   # Remote backup path
 LOCAL_BACKUPS=false              # Enable or disable storage and deletion of local backups, a temporary file will still be made
-BACKUP_PATH="./"                   # Directory where local backups should be made
+BACKUP_PATH="./"                 # Directory where local backups should be made
 BACKUP_EXPIRES=-1                # Number of days after which local backups should be deleted, -1 for never
+SLACK_INTEGRATION=false          # Enable or disable slack webhook integration
+SLACK_WEBHOOK_URL=""             # Slack webhook URL
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 ```
@@ -92,3 +97,7 @@ Where MYSQL_DATABASE is the name of the database being backed up, followed by th
 ## Deleting Old Backups
 
 By default, this script won't store local backups or delete old local backups, see ```BACKUP_EXPIRES=-1``` and ```DISABLE_LOCAL_BACKUPS``` in the configuration section, optionally backups can be stored locally as well as remotely and automatically deleted from the local backups folder after ```BACKUP_EXPIRES=x``` amount of days. Remote backups will never be deleted, this is by design.
+
+## Slack Integration
+
+This script can post to a slack channel using the webhook url specified in the config file, more info about creating slack webhooks can be found at https://api.slack.com/messaging/webhooks

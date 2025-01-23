@@ -1,5 +1,5 @@
 # MySQL Database Backup Tool Config
-MYSQL_BCKTOOL_CFG_VER="1.3"
+MYSQL_BCKTOOL_CFG_VER="1.4"
 
 #~~~~~~~~Connection Settings~~~~~~~~#
 
@@ -11,7 +11,9 @@ REMOTE_USER=""                   # Remote username
 REMOTE_HOST=""                   # Remote hostname
 REMOTE_PATH=""                   # Remote backup path
 LOCAL_BACKUPS=false              # Enable or disable storage and deletion of local backups, a temporary file will still be made
-BACKUP_PATH="./"                   # Directory where local backups should be made
+BACKUP_PATH="./"                 # Directory where local backups should be made
 BACKUP_EXPIRES=-1                # Number of days after which local backups should be deleted, -1 for never
+SLACK_INTEGRATION=false          # Enable or disable slack webhook integration
+SLACK_WEBHOOK_URL=""             # Slack webhook URL
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

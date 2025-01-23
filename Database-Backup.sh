@@ -12,9 +12,24 @@
 # Author: Kate Davidson - katedavidson.dev
 # Date 10/01/2025
 
-version="1.3"
+version="1.4"
 config_path="$(dirname $(realpath $0))/conf.d"
 script_path="$(dirname $(realpath $0))"
+
+slack_message() {
+
+PAYLOAD=$(cat <<EOF
+{
+  "username": "MySQL Backup Tool",
+  "text": "*Log Message:*\n$1\n\n*Config File:*\n$2\n\n*Status:*\n$3"
+  "icon_emoji": ":floppy_disk:"
+}
+EOF
+)
+
+curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d "$PAYLOAD"
+
+}
 
 dry_run() {
     echo "Dry-run, not backing up."
@@ -240,6 +255,8 @@ unset_variables() {
     unset LOCAL_BACKUPS
     unset BACKUP_PATH
     unset BACKUP_EXPIRES
+    unset SLACK_INTEGRATION
+    unset SLACK_WEBHOOK_URL
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -301,12 +318,19 @@ for config_file in "${config_files[@]}"; do
                 fi
             else
                 live_run
+                
                 if [ $? -ne 0 ]; then
                     ERROR=true
+                    if [ $SLACK_INTEGRATION = true ]; then
+                        slack_message "Database backup failed! :face_with_head_bandage:" "$config_file" "Failed"
+                    fi
                 else
                     if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
                         echo "Checking for expired local backups."
                         delete_backups
+                    fi
+                    if [ $SLACK_INTEGRATION = true ]; then
+                        slack_message "Database backup completed! :tada:" "$config_file" "Completed"
                     fi
                 fi
             fi
