@@ -10,14 +10,14 @@
 #   -h -help      Display this message.
 #
 # Author: Kate Davidson - katedavidson.dev
-# Date 10/01/2025
+# Date 24/01/2025
 
 version="1.4"
 config_path="$(dirname $(realpath $0))/conf.d"
 script_path="$(dirname $(realpath $0))"
 
 slack_message() {
-    curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d '{"text": "*Log Message:*\n'"$1"'\n\n*Config File:*\n'"$2"'\n\n*Status:*\n'"$3"'"}'
+    curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"$4"'","text": "*Log Message:*\n'"$1"'\n\n*Config File:*\n'"$2"'\n\n*Status:*\n'"$3"'"}]}'
 }
 
 dry_run() {
@@ -311,7 +311,7 @@ for config_file in "${config_files[@]}"; do
                 if [ $? -ne 0 ]; then
                     ERROR=true
                     if [ "$SLACK_INTEGRATION" = true ]; then
-                        slack_message "Database backup failed! :face_with_head_bandage:" "$config_file" "Failed"
+                        slack_message "Database backup failed! :face_with_head_bandage:" "$config_file" "Failed" "#d33f3f"
                     fi
                 else
                     if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
@@ -319,7 +319,7 @@ for config_file in "${config_files[@]}"; do
                         delete_backups
                     fi
                     if [ "$SLACK_INTEGRATION" = true ]; then
-                        slack_message "Database backup completed! :tada:" "$config_file" "Completed"
+                        slack_message "Database backup completed! :tada:" "$config_file" "Completed" "#61d33f"
                     fi
                 fi
             fi
