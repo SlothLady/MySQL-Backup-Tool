@@ -211,13 +211,13 @@ delete_backups() {
             FILE_DATE_EPOCH=$(date -d "$FILE_DATE" +%s)
             FILE_AGE=$(( (CURRENT_DATE - FILE_DATE_EPOCH) / (60*60*24) ))
             if (( FILE_AGE > BACKUP_EXPIRES )); then
-                if [ "$dry_run" = false ]; then
+                if [ "$dry_run" = true ]; then
+                    echo "$file (age: $FILE_AGE days) is older than (BACKUP_EXPIRES: $BACKUP_EXPIRES days)"
+                else
                     echo "Deleting $file (age: $FILE_AGE days)"
                     echo "DELETING EXPIRED BACKUP $file " $(date) >>$script_path/logs-backup.log
                     echo "---------------------------------" >>$script_path/logs-backup.log
                     rm -f "$file"
-                else
-                    echo "$file (age: $FILE_AGE days) is older than (BACKUP_EXPIRES: $BACKUP_EXPIRES days)"
                 fi
             fi
         fi
@@ -316,7 +316,7 @@ for config_file in "${config_files[@]}"; do
                 else
                     if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
                         echo "Checking for expired local backups."
-                        echo "CHECKING FOR EXPIRED BACKUPS" $(date) >>$script_path/logs-backup.log
+                        echo "CHECKING FOR EXPIRED BACKUPS $config_file" $(date) >>$script_path/logs-backup.log
                         echo "---------------------------------" >>$script_path/logs-backup.log
                         delete_backups
                     fi
