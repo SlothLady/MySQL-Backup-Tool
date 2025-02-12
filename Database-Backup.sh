@@ -215,7 +215,7 @@ delete_backups() {
                     echo "Deleting $file (age: $FILE_AGE days)"
                     echo "DELETING EXPIRED BACKUP $file " $(date) >>$script_path/logs-backup.log
                     echo "---------------------------------" >>$script_path/logs-backup.log
-                    rm "$file"
+                    rm -f "$file"
                 else
                     echo "$file (age: $FILE_AGE days) is older than (BACKUP_EXPIRES: $BACKUP_EXPIRES days)"
                 fi
@@ -316,6 +316,8 @@ for config_file in "${config_files[@]}"; do
                 else
                     if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
                         echo "Checking for expired local backups."
+                        echo "CHECKING FOR EXPIRED BACKUPS" $(date) >>$script_path/logs-backup.log
+                        echo "---------------------------------" >>$script_path/logs-backup.log
                         delete_backups
                     fi
                     if [ "$SLACK_INTEGRATION" = true ]; then
