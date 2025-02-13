@@ -19,16 +19,16 @@ log_path="$script_path/logs-backup.log"
 
 slack_message() {
     if [ "$dry_run" = false ] && [ "$SLACK_INTEGRATION" = true ]; then
-        curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"$4"'","text": "*Log Message:*\n'"$1"'\n\n*Config File:*\n'"$2"'\n\n*Status:*\n'"$3"'\n\n*Hostname:*\n'"$(uname -n)"'"}]}' > /dev/null 2>&1
+        curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"$4"'","text": "*Log Message:*\n'"$1"'\n\n*Config File:*\n'"$2"'\n\n*Status:*\n'"$3"'\n\n*Hostname:*\n'"$(uname -n)"'"}]}' >/dev/null 2>&1
     fi
 }
 
 log_message() {
     if [ "$dry_run" = false ]; then
         if [ "$2" = false ]; then
-            echo "$1">>$log_path
+            echo "$1" >>$log_path
         else
-            echo "$1" $(date)>>$log_path
+            echo "$1" $(date) >>$log_path
         fi
     fi
 }
@@ -54,7 +54,7 @@ run_backup() {
 
                     if [ $? -eq 0 ]; then
                         echo "Checking whether database $MYSQL_DATABASE can be used."
-                        MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "USE $MYSQL_DATABASE;"  >/dev/null 2>&1
+                        MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "USE $MYSQL_DATABASE;" >/dev/null 2>&1
 
                         if [ $? -eq 0 ]; then
                             echo "Checking if user $MYSQL_USERNAME has PROCESS privileges."
@@ -164,8 +164,8 @@ delete_backups() {
             if [[ $file =~ _([0-9]{4}-[0-9]{2}-[0-9]{2})_[0-9]{2}-[0-9]{2}\.sql\.gz ]]; then
                 FILE_DATE=${BASH_REMATCH[1]}
                 FILE_DATE_EPOCH=$(date -d "$FILE_DATE" +%s)
-                FILE_AGE=$(( (CURRENT_DATE - FILE_DATE_EPOCH) / (60*60*24) ))
-                if (( FILE_AGE > BACKUP_EXPIRES )); then
+                FILE_AGE=$(((CURRENT_DATE - FILE_DATE_EPOCH) / (60 * 60 * 24)))
+                if ((FILE_AGE > BACKUP_EXPIRES)); then
                     if [ "$dry_run" = true ]; then
                         echo "$file (age: $FILE_AGE days) is older than (BACKUP_EXPIRES: $BACKUP_EXPIRES days)"
                     else
@@ -209,23 +209,23 @@ dry_run=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -c | -config)
-            config_path="$2"
-            shift 2
-            ;;
-        -t | -test)
-            dry_run=true
-            shift
-            ;;
-        -h | -help)
-            print_help
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1"
-            print_help
-            exit 1
-            ;;
+    -c | -config)
+        config_path="$2"
+        shift 2
+        ;;
+    -t | -test)
+        dry_run=true
+        shift
+        ;;
+    -h | -help)
+        print_help
+        exit 0
+        ;;
+    *)
+        echo "Unknown option: $1"
+        print_help
+        exit 1
+        ;;
     esac
 done
 
@@ -254,7 +254,7 @@ for config_file in "${config_files[@]}"; do
         unset_variables
         source "$config_file"
         if [ "$MYSQL_BCKTOOL_CFG_VER" = $version ]; then
-            run_backup            
+            run_backup
             if [ $? -ne 0 ]; then
                 ERROR=true
                 slack_message "Database backup failed! :face_with_head_bandage:" "$config_file" "Failed" "#d33f3f"
