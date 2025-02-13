@@ -25,7 +25,11 @@ slack_message() {
 
 log_message() {
     if [ "$dry_run" = false ]; then
-        echo "$1 " $(date) >>$log_path
+        if [ "$2" = false ]; then
+            echo "$1">>$log_path
+        else
+            echo "$1" $(date)>>$log_path
+        fi
     fi
 }
 
@@ -262,7 +266,7 @@ for config_file in "${config_files[@]}"; do
             echo "Config file $config_file $MYSQL_BCKTOOL_CFG_VER version mismatch, expected $version, skipping."
             log_message "CONFIG FILE $config_file $MYSQL_BCKTOOL_CFG_VER VERSION MISMATCH"
         fi
-        log_message "---------------------------------"
+        log_message "---------------------------------" false
     else
         echo "Config file $config_file missing, skipping."
     fi
