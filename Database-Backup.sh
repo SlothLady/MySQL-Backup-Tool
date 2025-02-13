@@ -134,71 +134,59 @@ live_run() {
                                             if [ $? -eq 0 ]; then
                                                 echo "Local backup deleted, exiting."
                                                 echo "LOCAL BACKUP DELETED " $(date) >>$script_path/logs-backup.log
-                                                echo "---------------------------------" >>$script_path/logs-backup.log
                                                 return 0
                                             else
                                                 echo "Local backup deleting failed, exiting."
                                                 echo "DELETING LOCAL BACKUP FAILED " $(date) >>$script_path/logs-backup.log
-                                                echo "---------------------------------" >>$script_path/logs-backup.log
                                                 return 1
                                             fi
                                         else
                                             echo "Backup to remote host successful, exiting."
-                                            echo "---------------------------------" >>$script_path/logs-backup.log
                                             return 0
                                         fi
                                     else
                                         echo "Backup to remote host failed, exiting." >&2
                                         echo "FILE TRANSFER FAILED " $(date) >>$script_path/logs-backup.log
-                                        echo "---------------------------------" >>$script_path/logs-backup.log
                                         return 1
                                     fi
                                 else
                                     echo "Dumping database failed, exiting." >&2
                                     echo "DUMP FAILED " $(date) >>$script_path/logs-backup.log
-                                    echo "---------------------------------" >>$script_path/logs-backup.log
                                     return 1
                                 fi
                             else
                                 echo "User does NOT have PROCESS privilege, exiting." >&2
                                 echo "MYSQL USER NO PROCESS PERM " $(date) >>$script_path/logs-backup.log
-                                echo "---------------------------------" >>$script_path/logs-backup.log
                                 return 1
                             fi
                         else
                             echo "Database is NOT usable, exiting." >&2
                             echo "MYSQL DB NOT USABLE " $(date) >>$script_path/logs-backup.log
-                            echo "---------------------------------" >>$script_path/logs-backup.log
                             return 1
                         fi
                     else
                         echo "Login to MySQL failed, exiting." >&2
                         echo "MYSQL BAD LOGIN " $(date) >>$script_path/logs-backup.log
-                        echo "---------------------------------" >>$script_path/logs-backup.log
                         return 1
                     fi
                 else
                     echo "Writing to remote path failed, exiting." >&2
                     echo "REMOTE PATH NO PERMS " $(date) >>$script_path/logs-backup.log
-                    echo "---------------------------------" >>$script_path/logs-backup.log
                     return 1
                 fi
             else
                 echo "Login to remote host failed, exiting." >&2
                 echo "REMOTE HOST BAD LOGIN " $(date) >>$script_path/logs-backup.log
-                echo "---------------------------------" >>$script_path/logs-backup.log
                 return 1
             fi
         else
             echo "The database backup directory is not writable, exiting." >&2
             echo "LOCAL BACKUP DIR NO PERMS " $(date) >>$script_path/logs-backup.log
-            echo "---------------------------------" >>$script_path/logs-backup.log
             return 1
         fi
     else
         echo "The script directory is not writable, exiting." >&2
         echo "SCRIPT DIR NO PERMS " $(date) >>$script_path/logs-backup.log
-        echo "---------------------------------" >>$script_path/logs-backup.log
         return 1
     fi
 }
@@ -216,7 +204,6 @@ delete_backups() {
                 else
                     echo "Deleting $file (age: $FILE_AGE days)"
                     echo "DELETING EXPIRED BACKUP $file " $(date) >>$script_path/logs-backup.log
-                    echo "---------------------------------" >>$script_path/logs-backup.log
                     rm -f "$file"
                 fi
             fi
@@ -317,7 +304,6 @@ for config_file in "${config_files[@]}"; do
                     if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
                         echo "Checking for expired local backups."
                         echo "CHECKING FOR EXPIRED BACKUPS $config_file" $(date) >>$script_path/logs-backup.log
-                        echo "---------------------------------" >>$script_path/logs-backup.log
                         delete_backups
                     fi
                     if [ "$SLACK_INTEGRATION" = true ]; then
@@ -329,14 +315,12 @@ for config_file in "${config_files[@]}"; do
             if [ "$dry_run" = false ]; then
                 echo "Config file $config_file $MYSQL_BCKTOOL_CFG_VER version mismatch, expected $version, skipping."
                 echo "CONFIG FILE $config_file $MYSQL_BCKTOOL_CFG_VER VERSION MISMATCH " $(date) >>$script_path/logs-backup.log
-                echo "---------------------------------" >>$script_path/logs-backup.log
             fi
         fi
+        echo "---------------------------------" >>$script_path/logs-backup.log
     else
         if [ "$dry_run" = false ]; then
             echo "Config file $config_file missing, skipping."
-            echo "CONFIG FILE $config_file MISSING " $(date) >>$script_path/logs-backup.log
-            echo "---------------------------------" >>$script_path/logs-backup.log
         fi
     fi
 done
