@@ -303,7 +303,7 @@ for config_file in "${config_files[@]}"; do
                 else
                     if [ "$BACKUP_EXPIRES" -ne -1 ] && [ "$LOCAL_BACKUPS" = true ]; then
                         echo "Checking for expired local backups."
-                        echo "CHECKING FOR EXPIRED BACKUPS $config_file" $(date) >>$script_path/logs-backup.log
+                        echo "CHECKING FOR EXPIRED LOCAL BACKUPS" $(date) >>$script_path/logs-backup.log
                         delete_backups
                     fi
                     if [ "$SLACK_INTEGRATION" = true ]; then
