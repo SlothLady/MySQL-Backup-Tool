@@ -17,7 +17,7 @@ config_path="$(dirname $(realpath $0))/conf.d"
 script_path="$(dirname $(realpath $0))"
 
 slack_message() {
-    curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"$4"'","text": "*Log Message:*\n'"$1"'\n\n*Config File:*\n'"$2"'\n\n*Status:*\n'"$3"'"}]}' > /dev/null 2>&1
+    curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"$4"'","text": "*Log Message:*\n'"$1"'\n\n*Config File:*\n'"$2"'\n\n*Status:*\n'"$3"'\n\n*Hostname:*\n'"$(uname -n)"'"}]}' > /dev/null 2>&1
 }
 
 dry_run() {
