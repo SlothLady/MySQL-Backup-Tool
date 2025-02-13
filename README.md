@@ -1,4 +1,4 @@
-# MySQL Backup Tool
+# MySQL / MariaDB Backup Tool
 
 This script allows you to backup a MySQL database or multiple MySQL databases to, optionally a local folder, and upload the backups to a remote server using SCP. This script also has a dry run option to allow you to just test your connection settings and for neccessary privileges without doing a backup.
 
@@ -91,7 +91,7 @@ Event logs are stored in the file ```logs-backup.log``` in the working directory
 
 ## Naming Convention
 
-Backups will be named ````[MYSQL_DATABASE]YYYY-MM-DD_HH-MM.sql.gz````
+Backups will be named ```[MYSQL_DATABASE]YYYY-MM-DD_HH-MM.sql.gz```
 Where MYSQL_DATABASE is the name of the database being backed up, followed by the current date and time.
 
 ## Deleting Old Backups
@@ -101,3 +101,15 @@ By default, this script won't store local backups or delete old local backups, s
 ## Slack Integration
 
 This script can post to a slack channel using the webhook url specified in the config file, more info about creating slack webhooks can be found at https://api.slack.com/messaging/webhooks
+
+## Automation with cron
+
+This script is designed to be used with cron to automatically run backups and can be easily automated with cron! Below is an example of a cron file to run the script daily at 10pm in ```/etc/cron.d/mysqlbackup``` as the user ```debian```
+
+```
+## MySQL Database Backup Tool
+0 22 * * * debian /bin/bash /home/debian/MySQL-Backup-Tool/Database-Backup.sh
+##
+```
+
+You can specify the config file or folder location with ```-c``` or ```-config```, by default the ```conf.d``` folder in the same directory as the script will be used to look for config files.
