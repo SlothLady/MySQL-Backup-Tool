@@ -41,10 +41,10 @@ dry_run() {
                         MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "USE $MYSQL_DATABASE;"  >/dev/null 2>&1
 
                         if [ $? -eq 0 ]; then
-                            echo "Checking if user $MYSQL_USERNAME has PROCESS privileges."
+                            echo "Checking if user $MYSQL_USERNAME has required privileges."
                             PRIVILEGES=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "SHOW GRANTS FOR '$MYSQL_USERNAME'@'$MYSQL_HOST';" 2>/dev/null)
 
-                            if [[ $PRIVILEGES == *"PROCESS"* ]]; then
+                            if [[ $PRIVILEGES == *"SELECT"* && $PRIVILEGES == *"SHOW VIEW"* && $PRIVILEGES == *"TRIGGER"* && $PRIVILEGES == *"PROCESS"* ]]; then
 
                                 if [[ "$LOCAL_BACKUPS" = true ]]; then
                                     echo "Local backups are enabled."
@@ -58,7 +58,7 @@ dry_run() {
                                 echo "Connection test successful, exiting."
                                 return 0
                             else
-                                echo "User does NOT have PROCESS privilege, exiting." >&2
+                                echo "User does NOT have required privileges, exiting." >&2
                                 return 1
                             fi
                         else
@@ -111,7 +111,7 @@ live_run() {
                             echo "Checking if user $MYSQL_USERNAME has PROCESS privileges."
                             PRIVILEGES=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "SHOW GRANTS FOR '$MYSQL_USERNAME'@'$MYSQL_HOST';" 2>/dev/null)
 
-                            if [[ $PRIVILEGES == *"PROCESS"* ]]; then
+                            if [[ $PRIVILEGES == *"SELECT"* && $PRIVILEGES == *"SHOW VIEW"* && $PRIVILEGES == *"TRIGGER"* && $PRIVILEGES == *"PROCESS"* ]]; then
                                 BACKUP_FILENAME="${MYSQL_DATABASE}_$(date +"%Y-%m-%d_%H-%M").sql.gz"
                                 echo "Dumping database $MYSQL_DATABASE to $BACKUP_PATH/$BACKUP_FILENAME."
                                 echo "BEGIN DUMP " $(date) >>$script_path/logs-backup.log
@@ -155,8 +155,8 @@ live_run() {
                                     return 1
                                 fi
                             else
-                                echo "User does NOT have PROCESS privilege, exiting." >&2
-                                echo "MYSQL USER NO PROCESS PERM " $(date) >>$script_path/logs-backup.log
+                                echo "User does NOT have required privileges, exiting." >&2
+                                echo "MYSQL USER BAD PERMS " $(date) >>$script_path/logs-backup.log
                                 return 1
                             fi
                         else
