@@ -79,7 +79,7 @@ Testing connection to remote host remotehost as user localuser
 Checking if remote path /home/remoteuser is writeable.
 Testing connection to MySQL server localhost as mysqluser.
 Checking whether database mysqldb can be used.
-Checking if user mysqluser has PROCESS privileges.
+Checking if user mysqluser has SELECT, SHOW VIEW, TRIGGER, PROCESS privileges.
 Connection test successful, exiting.
 ```
 
