@@ -57,7 +57,7 @@ run_backup() {
                         MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "USE $MYSQL_DATABASE;" >/dev/null 2>&1
 
                         if [ $? -eq 0 ]; then
-                            echo "Checking if user $MYSQL_USERNAME has PROCESS privileges."
+                            echo "Checking if user $MYSQL_USERNAME has SELECT, SHOW VIEW, TRIGGER, PROCESS privileges."
                             PRIVILEGES=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u $MYSQL_USERNAME -h $MYSQL_HOST -e "SHOW GRANTS FOR '$MYSQL_USERNAME'@'$MYSQL_HOST';" 2>/dev/null)
 
                             if [[ $PRIVILEGES == *"SELECT"* && $PRIVILEGES == *"SHOW VIEW"* && $PRIVILEGES == *"TRIGGER"* && $PRIVILEGES == *"PROCESS"* ]]; then
