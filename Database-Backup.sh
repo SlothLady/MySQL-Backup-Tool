@@ -10,9 +10,7 @@
 #   -h -help      Display this message.
 #
 # Author: Kate Davidson - katedavidson.dev
-# Date 24/01/2025
 
-version="1.4"
 script_path="$(dirname $(realpath ${0}))"
 config_path="${script_path}/conf.d"
 log_path="${script_path}/logs-backup.log"
@@ -190,7 +188,6 @@ print_help() {
 }
 
 unset_variables() {
-    unset MYSQL_BCKTOOL_CFG_VER
     unset MYSQL_USERNAME
     unset MYSQL_PASSWORD
     unset MYSQL_DATABASE
@@ -253,18 +250,13 @@ for config_file in "${config_files[@]}"; do
     if [ -f "${config_file}" ]; then
         unset_variables
         source "${config_file}"
-        if [ "${MYSQL_BCKTOOL_CFG_VER}" = ${version} ]; then
-            run_backup
-            if [ ${?} -ne 0 ]; then
-                ERROR=true
-                slack_message "Database backup failed! :face_with_head_bandage:" "${config_file}" "Failed" "#d33f3f"
-            else
-                delete_backups
-                slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f"
-            fi
+        run_backup
+        if [ ${?} -ne 0 ]; then
+            ERROR=true
+            slack_message "Database backup failed! :face_with_head_bandage:" "${config_file}" "Failed" "#d33f3f"
         else
-            echo "Config file ${config_file} ${MYSQL_BCKTOOL_CFG_VER} version mismatch, expected ${version}, skipping."
-            log_message "CONFIG FILE ${config_file} ${MYSQL_BCKTOOL_CFG_VER} VERSION MISMATCH"
+            delete_backups
+            slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f"
         fi
         log_message "---------------------------------" false
     else

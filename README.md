@@ -19,8 +19,6 @@ bash Database-Backup.sh -h # Or -help displays usage information
 
 Before your first use, you will need to enter your connection settings for your local MySQL database and the remote host. Additionally this script expects that you have used ssh-keygen to generate ssh keys for the user running the script and synced them with the remote host. You should be able to connect as specified below for this script to not return a remote connection error. Config files or config file paths can be specified using -c or -config. By default the script will look for config files in the folder conf.d.
 
-The script and config files have a version, when the variables in the script are changed in a way that breaks compatibility, the version number will change and you will need to make alterations to your existing incompatible config files for the script to use them.
-
 ```
 ssh user@remote-host
 ```
@@ -45,7 +43,6 @@ nano database1.conf
 
 ```bash
 # MySQL Database Backup Tool Config
-MYSQL_BCKTOOL_CFG_VER="1.4"
 
 #~~~~~~~~Connection Settings~~~~~~~~#
 

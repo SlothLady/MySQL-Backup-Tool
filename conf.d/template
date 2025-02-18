@@ -1,5 +1,4 @@
 # MySQL Database Backup Tool Config
-MYSQL_BCKTOOL_CFG_VER="1.4"
 
 #~~~~~~~~Connection Settings~~~~~~~~#
 
