@@ -99,6 +99,10 @@ By default, this script won't store local backups or delete old local backups, s
 
 This script can post to a slack channel using the webhook url specified in the config file, more info about creating slack webhooks can be found at https://api.slack.com/messaging/webhooks
 
+## Digital Forensics
+
+By setting up slack integration, whenever a backup is made successfully, a message gets sent to your slack webhook with the timestamp from the message, the status, the name of the sql.gz backup file and the sha256 hash. By having this sent to a third party with a timestamp, it can be used to prove that a backup is authentic and untampered at a particular date and time by verifying the hash of the backup with the one sent to slack.
+
 ## Automation with cron
 
 This script is designed to be used with cron to automatically run backups and can be easily automated with cron! Below is an example of a cron file to run the script daily at 10pm in ```/etc/cron.d/mysqlbackup``` as the user ```debian```
