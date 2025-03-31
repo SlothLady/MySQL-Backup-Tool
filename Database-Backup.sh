@@ -44,7 +44,7 @@ run_backup() {
     log_message "BEGINS ${config_file}"
     echo "Using config file ${config_file}"
     if [ -w "${script_path}" ]; then
-        if [[ -w "${BACKUP_PATH}" && -z "${BACKUP_PATH}" ]]; then
+        if [[ -w "${BACKUP_PATH}" && ! -z "${BACKUP_PATH}" ]]; then
             echo "Testing connection to remote host ${REMOTE_HOST} as user ${REMOTE_USER}"
             ssh -o BatchMode=yes -o ConnectTimeout=5 "${REMOTE_USER}@${REMOTE_HOST}" 'echo "Login successful."' >/dev/null 2>&1
 
