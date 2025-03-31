@@ -20,7 +20,7 @@ slack_message() {
         if [ -z "${5}" ]; then
             filehash="n/a"
         else
-            filehash=$(sha1sum "${5}" | awk '{print $1}')
+            filehash=$(sha256sum "${5}" | awk '{print $1}')
         fi
         if [ -z "${6}" ]; then
             filename="n/a"
