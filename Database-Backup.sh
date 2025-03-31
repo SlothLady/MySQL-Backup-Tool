@@ -209,7 +209,6 @@ unset_variables() {
 }
 
 dry_run=false
-set -f
 
 while [[ "${#}" -gt 0 ]]; do
     case ${1} in
