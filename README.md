@@ -101,7 +101,7 @@ This script can post to a slack channel using the webhook url specified in the c
 
 ## Digital Forensics
 
-By setting up slack integration, whenever a backup is made successfully, a message gets sent to your slack webhook with the timestamp from the message, the status, the name of the sql.gz backup file and the sha256 hash. By having this sent to a third party with a timestamp, it can be used to prove that a backup is authentic and untampered at a particular date and time by verifying the hash of the backup with the one sent to slack.
+By setting up Slack integration, a message is automatically sent to your Slack webhook each time a backup is successfully completed. This message includes the timestamp, status, name of the backup file, and its SHA-256 hash. Sending this information to a third party, complete with a timestamp, provides a way to prove the authenticity and integrity of the backup at a specific date and time. The hash included in the Slack message can later be verified against the backup to confirm it has not been tampered with by using the command ```sha256sum backup.sql.gz```.
 
 ## Automation with cron
 
