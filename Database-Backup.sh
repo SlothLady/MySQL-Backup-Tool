@@ -20,7 +20,7 @@ slack_message() {
         if [ -z "${5}" ]; then
             filehash="n/a"
         else
-            filehash="${5}"
+            filehash= $(sha1sum "${5}")
         fi
         curl -X POST "${SLACK_WEBHOOK_URL}" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"${4}"'","text": "*Log Message:*\n'"${1}"'\n\n*Config File:*\n'"${2}"'\n\n*Status:*\n'"${3}"'\n\n*Hostname:*\n'"$(uname -n)"'\n\n*File Sha1 Hash:*\n'"${filehash}"'"}]}' >/dev/null 2>&1
         unset filehash
@@ -262,7 +262,7 @@ for config_file in "${config_files[@]}"; do
             slack_message "Database backup failed! :face_with_head_bandage:" "${config_file}" "Failed" "#d33f3f"
         else
             delete_backups
-            slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f" ${sha1sum "${BACKUP_PATH}/${BACKUP_FILENAME}"}
+            slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f" "${BACKUP_PATH}/${BACKUP_FILENAME}"
         fi
         log_message "---------------------------------" false
     else
