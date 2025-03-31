@@ -27,7 +27,7 @@ slack_message() {
         else
             filename=${6}
         fi
-        curl -X POST "${SLACK_WEBHOOK_URL}" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"${4}"'","text": "*Log Message:*\n'"${1}"'\n\n*Config File:*\n'"${2}"'\n\n*Status:*\n'"${3}"'\n\n*Hostname:*\n'"$(uname -n)"'\n\n*Backup Filename:*\n'"${filename}"'\n\n*File Sha1 Hash:*\n'"${filehash}"'"}]}' >/dev/null 2>&1
+        curl -X POST "${SLACK_WEBHOOK_URL}" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"${4}"'","text": "*Log Message:*\n'"${1}"'\n\n*Config File:*\n'"${2}"'\n\n*Status:*\n'"${3}"'\n\n*Hostname:*\n'"$(uname -n)"'\n\n*Backup Filename:*\n'"${filename}"'\n\n*Backup Sha1 Hash:*\n'"${filehash}"'"}]}' >/dev/null 2>&1
         unset filehash
         unset filename
     fi
