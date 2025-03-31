@@ -17,7 +17,13 @@ log_path="${script_path}/logs-backup.log"
 
 slack_message() {
     if [ "${dry_run}" = false ] && [ "${SLACK_INTEGRATION}" = true ]; then
-        curl -X POST "${SLACK_WEBHOOK_URL}" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"${4}"'","text": "*Log Message:*\n'"${1}"'\n\n*Config File:*\n'"${2}"'\n\n*Status:*\n'"${3}"'\n\n*Hostname:*\n'"$(uname -n)"'"}]}' >/dev/null 2>&1
+        if [ -z "${5}" ]
+            filehash="n/a"
+        else
+            filehash="${5}"
+        fi
+        curl -X POST "${SLACK_WEBHOOK_URL}" -H 'Content-Type: application/json' -d '{"attachments":[{"color":"'"${4}"'","text": "*Log Message:*\n'"${1}"'\n\n*Config File:*\n'"${2}"'\n\n*Status:*\n'"${3}"'\n\n*Hostname:*\n'"$(uname -n)"'\n\n*File Sha1 Hash:*\n'"${filehash}"'"}]}' >/dev/null 2>&1
+        unset filehash
     fi
 }
 
@@ -38,7 +44,7 @@ run_backup() {
     log_message "BEGINS ${config_file}"
     echo "Using config file ${config_file}"
     if [ -w "${script_path}" ]; then
-        if [ -w "${BACKUP_PATH}" ]; then
+        if [ -w "${BACKUP_PATH}" || -z "${BACKUP_PATH}" ]; then
             echo "Testing connection to remote host ${REMOTE_HOST} as user ${REMOTE_USER}"
             ssh -o BatchMode=yes -o ConnectTimeout=5 "${REMOTE_USER}@${REMOTE_HOST}" 'echo "Login successful."' >/dev/null 2>&1
 
@@ -76,13 +82,13 @@ run_backup() {
                                     BACKUP_FILENAME="${MYSQL_DATABASE}_$(date +"%Y-%m-%d_%H-%M").sql.gz"
                                     echo "Dumping database ${MYSQL_DATABASE} to ${BACKUP_PATH}/${BACKUP_FILENAME}."
                                     log_message "BEGIN DUMP"
-                                    MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump -u "${MYSQL_USERNAME}" -h "${MYSQL_HOST}" --single-transaction --databases "${MYSQL_DATABASE}" 2>/dev/null | gzip -9 >${BACKUP_PATH}/${BACKUP_FILENAME}
+                                    MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump -u "${MYSQL_USERNAME}" -h "${MYSQL_HOST}" --single-transaction --databases "${MYSQL_DATABASE}" 2>/dev/null | gzip -9 >"${BACKUP_PATH}/${BACKUP_FILENAME}"
 
                                     if [ ${?} -eq 0 ]; then
                                         log_message "END DUMP"
                                         echo "Dumping database successful. Backing up to remote host ${REMOTE_HOST} as user ${REMOTE_USER}."
                                         log_message "BEGIN FILE TRANSFER "
-                                        scp ${BACKUP_PATH}/${BACKUP_FILENAME} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}
+                                        scp "${BACKUP_PATH}/${BACKUP_FILENAME}" ${REMOTE_USER}@${REMOTE_HOST}:"${REMOTE_PATH}"
 
                                         if [ ${?} -eq 0 ]; then
                                             log_message "END FILE TRANSFER"
@@ -90,7 +96,7 @@ run_backup() {
                                             if [ "${LOCAL_BACKUPS}" = false ]; then
                                                 echo "Backup to remote host successful, deleting temporary file."
                                                 log_message "DELETING LOCAL BACKUP"
-                                                rm ${BACKUP_PATH}/${BACKUP_FILENAME}
+                                                rm "${BACKUP_PATH}/${BACKUP_FILENAME}"
 
                                                 if [ ${?} -eq 0 ]; then
                                                     echo "Local backup deleted."
@@ -142,8 +148,8 @@ run_backup() {
                 return 1
             fi
         else
-            echo "The database backup directory is not writable." >&2
-            log_message "LOCAL BACKUP DIR NO PERMS"
+            echo "The database backup directory is not writable or not set." >&2
+            log_message "LOCAL BACKUP DIR NO PERMS OR UNSET"
             return 1
         fi
     else
@@ -203,6 +209,7 @@ unset_variables() {
 }
 
 dry_run=false
+set -f
 
 while [[ "${#}" -gt 0 ]]; do
     case ${1} in
@@ -256,7 +263,7 @@ for config_file in "${config_files[@]}"; do
             slack_message "Database backup failed! :face_with_head_bandage:" "${config_file}" "Failed" "#d33f3f"
         else
             delete_backups
-            slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f"
+            slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f" ${sha1sum "${BACKUP_PATH}/${BACKUP_FILENAME}"}
         fi
         log_message "---------------------------------" false
     else
