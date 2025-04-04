@@ -4,6 +4,8 @@ This script allows you to backup a MySQL database or multiple MySQL databases to
 
 Can be automated with a cron job and multiple config files can be stored in a path, you can specify a path with -c or -config, this will make the script recursively use each config file. By default conf.d is used.
 
+Integrates with slack webhooks to allow you to send backup log messages to a slack channel with the status, name of the config file, name of the backed up file and the hash of the backup for forensics.
+
 ## Usage
 
 ### To use the script, use the following commands:
