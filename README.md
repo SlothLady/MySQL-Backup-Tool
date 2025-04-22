@@ -101,6 +101,9 @@ By default, this script won't store local backups or delete old local backups, s
 
 This script can post to a slack channel using the webhook url specified in the config file, more info about creating slack webhooks can be found at https://api.slack.com/messaging/webhooks
 
+<img width="70%" src="https://github.com/user-attachments/assets/9ea413f8-4774-4d1c-abad-de1638569834">
+
+
 ## Digital Forensics
 
 By setting up Slack integration, a message is automatically sent to your Slack webhook each time a backup is successfully completed. This message includes the timestamp, status, name of the backup file, and its SHA-256 hash. Sending this information to a third party, complete with a timestamp, provides a way to prove the authenticity and integrity of the backup at a specific date and time. The hash included in the Slack message can later be verified against the backup to confirm it has not been tampered with by using the command ```sha256sum backup.sql.gz```.
