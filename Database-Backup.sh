@@ -14,6 +14,7 @@
 script_path="$(dirname $(realpath ${0}))"
 config_path="${script_path}/conf.d"
 log_path="${script_path}/logs-backup.log"
+mysql_conf_path="${script_path}/my.cnf"
 
 slack_message() {
     if [[ "${dry_run}" = false && "${SLACK_INTEGRATION}" = true ]]; then
@@ -59,16 +60,18 @@ run_backup() {
                 echo "Hello ${REMOTE_HOST}" | ssh -o BatchMode=yes -o ConnectTimeout=5 "${REMOTE_USER}@${REMOTE_HOST}" "REMOTE_PATH=${REMOTE_PATH} && cat > \${REMOTE_PATH}/test"
 
                 if [ ${?} -eq 0 ]; then
+                    rm -f "${mysql_conf_path}"
+                    printf "[mysql]\nhost=%s\nuser=%s\npassword=%s\n" "${MYSQL_HOST}" "${MYSQL_USERNAME}" "${MYSQL_PASSWORD}">>"./my.cnf"
                     echo "Testing connection to MySQL server ${MYSQL_HOST} as ${MYSQL_USERNAME}."
-                    MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u "${MYSQL_USERNAME}" -h "${MYSQL_HOST}" -e "SELECT 1;" >/dev/null 2>&1
+                    mysql --defaults-file="${mysql_conf_path}" -e "SELECT 1;" >/dev/null 2>&1
 
                     if [ ${?} -eq 0 ]; then
                         echo "Checking whether database ${MYSQL_DATABASE} can be used."
-                        MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u ${MYSQL_USERNAME} -h ${MYSQL_HOST} -e "USE ${MYSQL_DATABASE};" >/dev/null 2>&1
+                        mysql --defaults-file="${mysql_conf_path}" -e "USE ${MYSQL_DATABASE};" >/dev/null 2>&1
 
                         if [ ${?} -eq 0 ]; then
                             echo "Checking if user ${MYSQL_USERNAME} has SELECT, SHOW VIEW, TRIGGER, PROCESS privileges."
-                            PRIVILEGES=$(MYSQL_PWD="${MYSQL_PASSWORD}" mysql -u ${MYSQL_USERNAME} -h ${MYSQL_HOST} -e "SHOW GRANTS FOR '${MYSQL_USERNAME}'@'${MYSQL_HOST}';" 2>/dev/null)
+                            PRIVILEGES=$(mysql --defaults-file="${mysql_conf_path}" -e "SHOW GRANTS FOR '${MYSQL_USERNAME}'@'${MYSQL_HOST}';" 2>/dev/null)
 
                             if [[ ${PRIVILEGES} == *"SELECT"* && ${PRIVILEGES} == *"SHOW VIEW"* && ${PRIVILEGES} == *"TRIGGER"* && ${PRIVILEGES} == *"PROCESS"* ]]; then
 
@@ -88,7 +91,7 @@ run_backup() {
                                     BACKUP_FILENAME="${MYSQL_DATABASE}_$(date +"%Y-%m-%d_%H-%M").sql.gz"
                                     echo "Dumping database ${MYSQL_DATABASE} to ${BACKUP_PATH}/${BACKUP_FILENAME}."
                                     log_message "BEGIN DUMP"
-                                    MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump -u "${MYSQL_USERNAME}" -h "${MYSQL_HOST}" --single-transaction --databases "${MYSQL_DATABASE}" 2>/dev/null | gzip -9 >"${BACKUP_PATH}/${BACKUP_FILENAME}"
+                                    mysqldump --defaults-file="${mysql_conf_path}" --single-transaction --databases "${MYSQL_DATABASE}" 2>/dev/null | gzip -9 >"${BACKUP_PATH}/${BACKUP_FILENAME}"
 
                                     if [ ${?} -eq 0 ]; then
                                         log_message "END DUMP"
@@ -263,6 +266,7 @@ for config_file in "${config_files[@]}"; do
         unset_variables
         source "${config_file}"
         run_backup
+        rm -f "${mysql_conf_path}"
         if [ ${?} -ne 0 ]; then
             ERROR=true
             slack_message "Database backup failed! :face_with_head_bandage:" "${config_file}" "Failed" "#d33f3f"
