@@ -61,7 +61,7 @@ run_backup() {
 
                 if [ ${?} -eq 0 ]; then
                     rm -f "${mysql_conf_path}"
-                    printf "[client]\nhost=%s\nuser=%s\npassword=%s\n" "${MYSQL_HOST}" "${MYSQL_USERNAME}" "${MYSQL_PASSWORD}">>"./my.cnf"
+                    printf "[client]\nhost=%s\nuser=%s\npassword=%s\n" "${MYSQL_HOST}" "${MYSQL_USERNAME}" "${MYSQL_PASSWORD}">>"${mysql_conf_path}"
                     echo "Testing connection to MySQL server ${MYSQL_HOST} as ${MYSQL_USERNAME}."
                     mysql --defaults-file="${mysql_conf_path}" -e "SELECT 1;" >/dev/null 2>&1
 
@@ -266,14 +266,14 @@ for config_file in "${config_files[@]}"; do
         unset_variables
         source "${config_file}"
         run_backup
-        rm -f "${mysql_conf_path}"
         if [ ${?} -ne 0 ]; then
             ERROR=true
             slack_message "Database backup failed! :face_with_head_bandage:" "${config_file}" "Failed" "#d33f3f"
         else
             delete_backups
-            slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f" "${BACKUP_PATH}/${BACKUP_FILENAME}" ${BACKUP_FILENAME}
+            slack_message "Database backup completed! :tada:" "${config_file}" "Completed" "#61d33f" "${BACKUP_PATH}/${BACKUP_FILENAME}" "${BACKUP_FILENAME}"
         fi
+        rm -f "${mysql_conf_path}"
         log_message "---------------------------------" false
     else
         echo "Config file ${config_file} missing, skipping."
