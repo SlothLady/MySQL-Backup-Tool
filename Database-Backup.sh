@@ -48,7 +48,7 @@ run_backup() {
     if [ "${dry_run}" = true ]; then
         echo "Dry-run, not backing up."
     fi
-    log_message "BEGINS ${config_file}"
+    log_message "BEGINS ${config_file} DIR ${script_path}"
     echo "Using config file ${config_file}"
     if [ -w "${script_path}" ]; then
         if [[ -w "${BACKUP_PATH}" && ! -z "${BACKUP_PATH}" ]]; then
