@@ -119,3 +119,13 @@ This script is designed to be used with cron to automatically run backups and ca
 ```
 
 You can specify the config file or folder location with ```-c``` or ```-config```, by default the ```conf.d``` folder in the same directory as the script will be used to look for config files.
+
+## Treeware
+
+You're free to use this package, but if it makes it to your production environment you are required to buy the world a tree.
+
+It is common knowledge that one of the best tools to tackle the climate crisis and keep our temperatures from rising above 1.5C is to plant trees. If you support this package and contribute to the Treeware forest you’ll be creating employment for local families and restoring wildlife habitats.
+
+You can buy trees [here](https://ecologi.com/slothlady).
+
+Read more about Treeware at [treeware.earth](https://treeware.earth).
